@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+  web:
+    container_name: kanri_backend
+    build: .
+    ports:
+      - "8080:8080"
+    networks:
+      - kanri-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+  postgres:
+    container_name: pg_kanri
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: tamtam
+      POSTGRES_PASSWORD: Luongminhtam123
+      POSTGRES_DB: kanri_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_kanri_volume:/var/lib/postgresql/data
+    networks:
+      - kanri-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      interval: 1s
+  pgadmin:
+    container_name: pgadmin4_kanri
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@honito.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    hostname: kanri
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-kanri-volume:/var/lib/pgadmin
+    networks:
+      - kanri-network
+    depends_on:
+      - postgres
+volumes:
+  pg_kanri_volume:
+  pgadmin-kanri-volume:
+networks:
+  kanri-network:
+    driver: bridge
